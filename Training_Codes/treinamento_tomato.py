@@ -1,63 +1,73 @@
 import tensorflow as tf
-from keras import layers
+from tensorflow import keras
+from keras import layers, metrics
 import numpy as np
-from keras import load_img, img_to_array
+import matplotlib as plt
 import datetime
-import os
 
-# Definição do Modelo
-SIZE = 256
-filters_layer_conv1 = 64
+SIZE = 300
+SIZE_IMAGE = (SIZE,SIZE)
+
+# criando um classificador para as doenças com base nas pastas de treino
+TRAINING_DIR = "D:\Harvest_ID\Harvest_ID-trainning\detecção tomate\Training"
+training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+    rescale=1./255)
+
+train_generator = training_datagen.flow_from_directory(TRAINING_DIR,
+                                                       target_size=SIZE_IMAGE,
+                                                       class_mode='categorical')
+
+# criando um validador para verificação da precisão das doenças
+VALIDATION_DIR = "D:\Harvest_ID\Harvest_ID-trainning\detecção tomate\validation"
+Validation_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+    rescale=1./255)
+
+validation_generator = Validation_datagen.flow_from_directory(VALIDATION_DIR,
+                                                              target_size = SIZE_IMAGE,
+                                                              class_mode='categorical')
+
+
+batch_size = 16
+epochs = 15
+learning_rate = 0.001
+
+# definindo a quantidade de filtros por camada
+filters_layer_conv1 = 512
 filters_layer_conv2 = 64
-filters_layer_conv3 = 128
-filters_layer_conv4 = 128
+filters_layer_conv3 = 256
+filters_layer_conv4 = 64
 filters_layer_dense = 512
 filters_layer_out = 2
-
-model = tf.keras.models.Sequential([
-    layers.Conv2D(filters_layer_conv1, (3, 3), activation='relu', input_shape=(SIZE, SIZE, 3)),
-    layers.MaxPooling2D(2, 2),
-    layers.Conv2D(filters_layer_conv2, (3, 3), activation='relu'),
-    layers.MaxPooling2D(2, 2),
-    layers.Conv2D(filters_layer_conv3, (3, 3), activation='relu'),
-    layers.MaxPooling2D(2, 2),
-    layers.Conv2D(filters_layer_conv4, (3, 3), activation='relu'),
-    layers.MaxPooling2D(2, 2),
-    layers.Dropout(0.5),
-    layers.Flatten(),
-    layers.Dense(filters_layer_dense, activation='relu'),
-    layers.Dense(filters_layer_out, activation="softmax")
-])
-
+# instanciando o modelo
+model = tf.keras.models.Sequential(# construindo as camadas convolucionais
+                                   [layers.Conv2D(filters_layer_conv1, (4, 4), activation='relu', input_shape=(SIZE, SIZE, 3)),
+                                    layers.MaxPooling2D(3, 3),
+                                    layers.Conv2D(filters_layer_conv2, (3, 3), activation='relu', input_shape=(SIZE, SIZE, 3)),
+                                    layers.MaxPooling2D(2, 2),
+                                    layers.Conv2D(filters_layer_conv3, (3, 3), activation='relu', input_shape=(SIZE, SIZE, 3)),
+                                    layers.MaxPooling2D(2, 2),
+                                    layers.Conv2D(filters_layer_conv4, (3, 3), activation='relu', input_shape=(SIZE, SIZE, 3)),
+                                    layers.MaxPooling2D(2, 2),
+                                    layers.Conv2D(filters_layer_conv3, (3, 3), activation='relu', input_shape=(SIZE, SIZE, 3)),
+                                    layers.MaxPooling2D(2, 2),
+                                    #Definindo a porcentagens de neuroniso que serão desligados após cada geração
+                                    layers.Dropout(0.5),
+                                    #compactação das camadas
+                                    layers.Flatten(),
+                                    # construindo a camada densa de entrada
+                                    layers.Dense(filters_layer_dense, activation='relu'),
+                                    #Construindo a camada densa de saída com a quantidade de filtro correspondendo a quantidade de classes
+                                    layers.Dense(filters_layer_out, activation="softmax")])
+#imprime as configurações das camadas, os parametros de saída e a quantidade de parametros
 model.summary()
+#compila as camadas do modelo e faz a otimização
+history = model.compile(loss=tf.keras.losses.BinaryCrossentropy() ,
+              optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+              metrics=["accuracy"])
+#Divide os dados em um conjunto de treinamento e um conjunto de validação, e usa o conjunto de validação para medir o progresso durante o treino.
+model.fit(train_generator, batch_size= batch_size,epochs = epochs, validation_data=validation_generator)
 
-# Função para Processamento de Imagens
-def process_image(img_path, img_width, img_height):
-    img = load_img(img_path, target_size=(img_width, img_height))
-    img_array = img_to_array(img)
-    img_array = img_array / 255.0
-    return np.expand_dims(img_array, axis=0)
-
-# Configurações de Treinamento
-TRAINING_DIR = "D:/Harvest/Harvest-ID_training/dataset/trainning"  # Altere para o caminho correto
-VALIDATION_DIR = "D:/Harvest/Harvest-ID_training/dataset/validation"  # Altere para o caminho correto
-batch_size = 256
-epochs = 10
-learning_rate = 0.0001
-
-# Geradores de Dados
-training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
-train_generator = training_datagen.flow_from_directory(TRAINING_DIR, target_size=(256, 256), class_mode='categorical')
-
-validation_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
-validation_generator = validation_datagen.flow_from_directory(VALIDATION_DIR, target_size=(256, 256), class_mode='categorical')
-
-# Compilação e Treinamento do Modelo
-model.compile(loss=tf.keras.losses.BinaryCrossentropy(), optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), metrics=["accuracy"])
-model.fit(train_generator, batch_size=batch_size, epochs=epochs, validation_data=validation_generator, verbose=1, validation_steps=3)
-
-# Salvando o Modelo
+#salva os dados do modelo
 hora_atual = datetime.datetime.now()
 data_hora = hora_atual.strftime("%Y-%m-%d %H:%M")
-model.save('/path/to/saved_model/{}bs {}epochs {}.keras'.format(batch_size, epochs, data_hora))
-
+model.save('/content/drive/MyDrive/tf_version{} {}bs {}epochs {}.keras'.format(tf.__version__,batch_size,epochs,data_hora))
