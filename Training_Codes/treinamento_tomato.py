@@ -70,4 +70,4 @@ model.fit(train_generator, batch_size= batch_size,epochs = epochs, validation_da
 #salva os dados do modelo
 hora_atual = datetime.datetime.now()
 data_hora = hora_atual.strftime("%Y-%m-%d %H:%M")
-model.save('/content/drive/MyDrive/tf_version{} {}bs {}epochs {}.keras'.format(tf.__version__,batch_size,epochs,data_hora))
+model.save('Models/Model_Tomato/Tomato_tf_version{} {}bs {}epochs {}.keras'.format(tf.__version__,batch_size,epochs,data_hora))

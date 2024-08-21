@@ -9,7 +9,7 @@ SIZE = 300
 SIZE_IMAGE = (SIZE,SIZE)
 
 # criando um classificador para as doenças com base nas pastas de treino
-TRAINING_DIR = "/content/drive/MyDrive/detecção de plantas 15g/train/"
+TRAINING_DIR = "detecção de plantas 15g/training"
 training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
     rescale=1./255)
 
@@ -18,7 +18,7 @@ train_generator = training_datagen.flow_from_directory(TRAINING_DIR,
                                                        class_mode='categorical')
 
 # criando um validador para verificação da precisão das doenças
-VALIDATION_DIR = "/content/drive/MyDrive/detecção de plantas 15g/Valid"
+VALIDATION_DIR = "detecção de plantas 15g/Valid"
 Validation_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
     rescale=1./255)
 
@@ -77,4 +77,4 @@ model.fit(train_generator, batch_size= batch_size,epochs = epochs, validation_da
 #salva os dados do modelo
 hora_atual = datetime.datetime.now()
 data_hora = hora_atual.strftime("%Y-%m-%d %H:%M")
-model.save('/content/drive/MyDrive/tf_version{} {}bs {}epochs {}.keras'.format(tf.__version__,batch_size,epochs,data_hora))
+model.save('Models/Model_Plants/Plants_tf_version{} {}bs {}epochs {}.keras'.format(tf.__version__,batch_size,epochs,data_hora))

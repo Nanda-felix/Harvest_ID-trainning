@@ -9,7 +9,7 @@ SIZE = 300
 SIZE_IMAGE = (SIZE,SIZE)
 
 # criando um classificador para as doenças com base nas pastas de treino
-TRAINING_DIR = "/Detecção Bananeiras/Training_Bananeiras"
+TRAINING_DIR = "/Detecção Bananeiras/Training"
 training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
     rescale=1./255)
 
@@ -77,4 +77,4 @@ model.fit(train_generator, batch_size= batch_size,epochs = epochs, validation_da
 #salva os dados do modelo
 hora_atual = datetime.datetime.now()
 data_hora = hora_atual.strftime("%Y-%m-%d %H:%M")
-model.save('/Models/Model_Banana/tf_version{} {}bs {}epochs {}.keras'.format(tf.__version__,batch_size,epochs,data_hora))
+model.save('Models/Model_Banana/Banana_tf_version{} {}bs {}epochs {}.keras'.format(tf.__version__,batch_size,epochs,data_hora))
